@@ -54,8 +54,8 @@ function printPage() {
 <body>
 	<div class = "container">
 		<div id = "header">
-		<center><h5 style = "font-style:Calibri"></h5>&nbsp; &nbsp;&nbsp; Kashi Institute Of Technology - 428 &nbsp;	&nbsp; </center>
-				<center><h5 style = "font-style:Calibri; margin-top:-14px;"></h5> &nbsp; &nbsp;Kashi Institute Of Pharmacy - 551</center>
+		<center><h5 style = "font-style:Calibri"></h5>&nbsp; &nbsp;&nbsp; Demo Institute Of Technology - 428 &nbsp;	&nbsp; </center>
+				<center><h5 style = "font-style:Calibri; margin-top:-14px;"></h5> &nbsp; &nbsp;Demo Institute Of Pharmacy - 551</center>
 				<center><h5 style = "font-style:Calibri; margin-top:-14px;"></h5>  Library Management System</center>
 					
 				</div><hr style="border: solid black 1px">

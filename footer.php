@@ -2,8 +2,7 @@
 	<footer>
 
 					<div class="">
-								<p class="pull-right" align="right">&nbsp;&nbsp;&nbsp;@ Library Management System&nbsp;
-									<span class="lead"> <i class="fa fa-university"></i> Kashi Institute Of Technology</span>
+								<p class="pull-right" align="right">&nbsp;&nbsp;&nbsp;@ Library Management System
 								</p>
 					</div>
 							<div class="clearfix"></div>
@@ -40,6 +39,8 @@
     <!-- image cropping -->
     <script src="js/cropping/cropper.min.js"></script>
     <script src="js/cropping/main2.js"></script>
+    <!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 
     <!-- datepicker -->
@@ -408,6 +409,140 @@
     </script>
     <!-- /knob -->	
 	<?php include ('scripts.php'); ?>
+
+    <!-- AI Chatbot Widget -->
+    <style>
+        #ai-chatbot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 9999;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ccc;
+        }
+        #ai-chatbot-header {
+            background: #3498DB;
+            color: #fff;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+        #ai-chatbot-body {
+            height: 300px;
+            padding: 10px;
+            overflow-y: auto;
+            background: #f9f9f9;
+            display: none;
+            flex-direction: column;
+        }
+        #ai-chatbot-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        .ai-msg { background: #e1f5fe; padding: 5px 8px; border-radius: 5px; margin-bottom: 5px; width: fit-content; max-width: 90%; }
+        .user-msg { background: #c8e6c9; padding: 5px 8px; border-radius: 5px; margin-bottom: 5px; align-self: flex-end; width: fit-content; max-width: 90%; text-align: right; margin-left: auto;}
+        #ai-chatbot-input {
+            width: 100%;
+            display: flex;
+        }
+        #ai-chatbot-input input {
+            flex-grow: 1;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        #ai-chatbot-input button {
+            background: #3498DB;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+            margin-left: 5px;
+        }
+    </style>
+
+    <div id="ai-chatbot">
+        <div id="ai-chatbot-header" onclick="toggleChat()">
+            <span><i class="fa fa-comments"></i> AI Library Assistant</span>
+            <i class="fa fa-chevron-up" id="chat-toggle-icon"></i>
+        </div>
+        <div id="ai-chatbot-body">
+            <div id="ai-chatbot-messages">
+                <div class="ai-msg">Hello! I am your AI Library Assistant. Ask me about our catalog!</div>
+            </div>
+            <div id="ai-chatbot-input">
+                <input type="text" id="chat-input" placeholder="e.g. Do you have Python books?" onkeypress="handleEnter(event)">
+                <button onclick="sendChatMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleChat() {
+            var body = document.getElementById('ai-chatbot-body');
+            var icon = document.getElementById('chat-toggle-icon');
+            if(body.style.display === 'flex') {
+                body.style.display = 'none';
+                icon.className = 'fa fa-chevron-up';
+            } else {
+                body.style.display = 'flex';
+                icon.className = 'fa fa-chevron-down';
+            }
+        }
+
+        function handleEnter(e) {
+            if(e.key === 'Enter') sendChatMessage();
+        }
+
+        function sendChatMessage() {
+            var input = document.getElementById('chat-input');
+            var msg = input.value.trim();
+            if(!msg) return;
+
+            // add user msg
+            var msgs = document.getElementById('ai-chatbot-messages');
+            msgs.innerHTML += '<div class="user-msg">' + msg + '</div>';
+            msgs.scrollTop = msgs.scrollHeight;
+            input.value = '';
+
+            // Loading state
+            var loadingId = 'loading-' + Date.now();
+            msgs.innerHTML += '<div class="ai-msg" id="' + loadingId + '"><i>Thinking...</i></div>';
+            msgs.scrollTop = msgs.scrollHeight;
+
+            fetch('http://127.0.0.1:5000/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById(loadingId).remove();
+                if(data.response) {
+                    msgs.innerHTML += '<div class="ai-msg">' + data.response + '</div>';
+                } else {
+                    msgs.innerHTML += '<div class="ai-msg" style="color:red">Error answering query.</div>';
+                }
+                msgs.scrollTop = msgs.scrollHeight;
+            })
+            .catch(e => {
+                document.getElementById(loadingId).remove();
+                msgs.innerHTML += '<div class="ai-msg" style="color:red">Connecting to AI Service Failed.</div>';
+                msgs.scrollTop = msgs.scrollHeight;
+            });
+        }
+    </script>
 </body>
 
 </html>

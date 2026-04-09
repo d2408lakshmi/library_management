@@ -1,99 +1,109 @@
-<?php include ('include/dbcon.php');
+<?php
+include ('include/dbcon.php');
 
-$code = $_GET['code'];
-							$result1= mysqli_query($con,"select book_title,book_barcode from book where book_barcode = '$code' ") or die (mysqli_error($con));
-							$row1=(mysqli_fetch_array($result1));
-							$book_barcode=$row1['book_barcode'];
-							$book_title=$row1['book_title'];
+// Start the session to access session variables
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+$code = isset($_GET['code']) ? $_GET['code'] : '';
+
+// Fetch book title associated with the barcode
+$book_title = '';
+if (!empty($code)) {
+    // Use prepared statements for better security
+    $stmt = mysqli_prepare($con, "SELECT book_title FROM book WHERE book_barcode = ?");
+    mysqli_stmt_bind_param($stmt, "s", $code);
+    mysqli_stmt_execute($stmt);
+    $result1 = mysqli_stmt_get_result($stmt);
+    
+    if ($row1 = mysqli_fetch_array($result1)) {
+        $book_title = $row1['book_title'];
+    }
+    mysqli_stmt_close($stmt);
+}
 ?>
 <html>
-
 <head>
-		<title>Library Management System</title>
-		
-		<style>
-		
-		
-.container {
-	width:100%;
-	margin:auto;
-}
-		
-.table {
-    width: 100%;
-    margin-bottom: 20px;
-}	
-
-.table-striped tbody > tr:nth-child(odd) > td,
-.table-striped tbody > tr:nth-child(odd) > th {
-    background-color: #f9f9f9;
-}
-
-@media print{
-#print {
-display:none;
-}
-}
-
-#print {
-	width: 90px;
-    height: 30px;
-    font-size: 18px;
-    background: white;
-    border-radius: 4px;
-	margin-left:28px;
-	cursor:hand;
-}
-		
-		</style>
-<script>
-function printPage() {
-    window.print();
-}
-</script>
-		
+    <title>Library Management System - Print Barcode</title>
+    <style>
+        .container { width: 100%; margin: auto; }
+        hr { border: solid black 1px; }
+        @media print {
+            #print { display: none; }
+        }
+        #print {
+            width: 90px;
+            height: 30px;
+            font-size: 18px;
+            background: white;
+            border-radius: 4px;
+            margin-left: 28px;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        function printPage() {
+            window.print();
+        }
+    </script>
 </head>
-
-
 <body>
-	<div class = "container">
-		<div id = "header">
-		<center><h5 style = "font-style:Calibri"></h5>&nbsp; &nbsp;&nbsp; Kashi Institute Of Technology - 428 &nbsp;	&nbsp; </center>
-				<center><h5 style = "font-style:Calibri; margin-top:-14px;"></h5> &nbsp; &nbsp;Kashi Institute Of Pharmacy - 551</center>
-				<center><h5 style = "font-style:Calibri; margin-top:-14px;"></h5>  Library Management System</center>
-					
-				</div><hr style="border: solid black 1px">
-			<button type="submit" id="print" onclick="printPage()">Print</button>	
-			
+    <div class="container">
+        <div id="header">
+            <center><h5 style="font-style:Calibri;">Demo Institute Of Technology - 428</h5></center>
+            <center><h5 style="font-style:Calibri; margin-top:-14px;">Demo Institute Of Pharmacy - 551</h5></center>
+            <center><h5 style="font-style:Calibri; margin-top:-14px;">Library Management System</h5></center>
+        </div>
+        <hr>
+        <button type="submit" id="print" onclick="printPage()">Print</button>
         <div align="right">
-		<b style="color:blue;">Date Prepared:</b>
-		<?php //include('currentdate.php');
-		echo date("l,d-m-Y"); ?>
-        </div>			
-		<br/>
-		<div>
-			<?php echo "<img src = 'BCG/html/image.php?filetype=PNG&dpi=72&scale=1&rotation=0&font_family=Arial.ttf&font_size=10&text=".$book_barcode."&thickness=50&start=NULL&code=BCGcode128' />";?>
-			<h4><?php echo $book_title; ?></h3>
-		</div>
-<br />
-<br />
-							<?php
-								include('include/dbcon.php');
-								include('session.php');
-								$user_query=mysqli_query($con,"select firstname,lastname from admin where admin_id='$id_session'")or die(mysqli_error($con));
-								$row=mysqli_fetch_array($user_query); {
-							?>        <h2><i class="glyphicon glyphicon-user"></i> <?php echo '<span style="color:blue; font-size:15px;">Prepared by:'."<br /><br /> ".$row['firstname']." ".$row['lastname']." ".'</span>';?></h2>
-								<?php } ?>
+            <b style="color:blue;">Date Prepared:</b> <?php echo date("l, d-m-Y"); ?>
+        </div>
+        <br/>
+        
+        <!-- === UPDATED BARCODE SECTION === -->
+        <div style="text-align: left; margin-left: 28px;">
+            <?php
+            if (!empty($code)) {
+                // Safely encode the barcode for the URL
+                $barcode_safe_for_url = urlencode($code);
 
+                // Point the image src to our new, modern generator script
+                echo '<img src="generate_barcode.php?code=' . $barcode_safe_for_url . '" alt="Barcode for ' . htmlspecialchars($code) . '">';
+                
+                // Display the book title below the barcode
+                echo "<h4>" . htmlspecialchars($book_title) . "</h4>";
 
-			</div>
-	
-	
-	
-	
+            } else {
+                echo "<p>No barcode specified.</p>";
+            }
+            ?>
+        </div>
+        <br />
+        <br />
+        
+        <!-- Prepared By Section -->
+        <?php
+            if (isset($_SESSION['id'])) {
+                $id_session = $_SESSION['id'];
+                // Use prepared statement here as well for security
+                $stmt_user = mysqli_prepare($con, "SELECT firstname, lastname FROM admin WHERE admin_id = ?");
+                mysqli_stmt_bind_param($stmt_user, "i", $id_session);
+                mysqli_stmt_execute($stmt_user);
+                $user_result = mysqli_stmt_get_result($stmt_user);
 
-	</div>
+                if ($row_user = mysqli_fetch_array($user_result)) {
+            ?>
+                    <div style="margin-left: 28px;">
+                        <span style="font-weight: bold;">Prepared by:</span><br>
+                        <span><?php echo htmlspecialchars($row_user['firstname'] . " " . $row_user['lastname']); ?></span>
+                    </div>
+            <?php
+                }
+                mysqli_stmt_close($stmt_user);
+            }
+            ?>
+    </div>
 </body>
-
-
 </html>

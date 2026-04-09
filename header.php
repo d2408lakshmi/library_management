@@ -63,7 +63,7 @@
     <script>
         NProgress.start();
     </script>
-    
+   
 </head>
 
 
@@ -77,5 +77,5 @@
 				<?php include ('top_nav.php'); ?>
 			<?php //include 'slidebar_with_nav.php' ?>	
 					<!-- page content -->
-					<div class="right_col" role="main">
+					<div class="right_col" role="main" style="background-color: #bdeff3ff;">
 						<div class="">

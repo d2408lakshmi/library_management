@@ -3,7 +3,7 @@ require_once('include/dbcon.php');
 ?>
 <head>
    
-    <title>KashiIT | Library Management System</title>
+    <title>DemoIT | Library Management System</title>
 
     <!-- Bootstrap core CSS -->
     <link href="//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
@@ -117,7 +117,7 @@ if(isset($_POST['forgot_password'])){
 
 <br><br><br><br><br>
 <div style="background: rgba(0,0,0,0.6);" align="center">
-    <h1 style="color:white; font-family:Georgia;"><i class="fa fa-university" style="font-size: 30px;color:white;"></i>&nbsp; Kashi Institute Of Technology
+    <h1 style="color:white; font-family:Georgia;"><i class="fa fa-university" style="font-size: 30px;color:white;"></i>&nbsp; Demo Institute Of Technology
     </h1>
 
     <p style="color:white; font-family:Georgia;word-spacing: 1px;">© <?php echo date('Y'); ?> &nbsp;&nbsp;
