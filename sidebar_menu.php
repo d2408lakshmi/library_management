@@ -75,7 +75,6 @@
                     <li><a href="settings.php"><i class="fa fa-cog"></i> Settings</a></li>
                     <?php } ?>
 
-                    <li><a href="about_us.php"><i class="fa fa-info"></i> About Us</a></li>
                 </ul>
             </div>
         </div>

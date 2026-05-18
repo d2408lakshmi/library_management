@@ -1,51 +1,26 @@
 <?php
-// --- PHP LOGIN LOGIC ---
-// This block should be at the very top of the file, before any HTML.
+// --- Redirect to Login Chooser ---
+// This ensures users are directed to the dual-login system
 
-include('include/dbcon.php');
-
-// Start the session only if it's not already active
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Variable to hold any login error messages
-$error_message = '';
-
-// Check if the form has been submitted
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
-    
-    $username = $_POST['username'];
-    $password = $_POST['password'];
-
-    // Use PREPARED STATEMENTS for security to prevent SQL Injection
-    $stmt = mysqli_prepare($con, "SELECT admin_id, firstname, middlename, lastname, admin_type, password FROM admin WHERE username = ?");
-    mysqli_stmt_bind_param($stmt, "s", $username);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    $row = mysqli_fetch_array($result, MYSQLI_ASSOC);
-    mysqli_stmt_close($stmt);
-
-    // Verify the user exists and the password is correct
-    // Note: This project uses plaintext passwords. In a real-world scenario, you should use password_hash() and password_verify().
-    if ($row && $password === $row['password']) {
-        // Login successful
-        $_SESSION['id'] = $row['admin_id'];
-
-        // Log the user's login activity
-        $log_stmt = mysqli_prepare($con, "INSERT INTO user_log (firstname, middlename, lastname, admin_type, date_log) VALUES (?, ?, ?, ?, NOW())");
-        mysqli_stmt_bind_param($log_stmt, "ssss", $row['firstname'], $row['middlename'], $row['lastname'], $row['admin_type']);
-        mysqli_stmt_execute($log_stmt);
-        mysqli_stmt_close($log_stmt);
-
-        // Redirect to the home page
-        header("location: home.php");
-        exit();
+// If already logged in, redirect to appropriate dashboard
+if (isset($_SESSION['id'])) {
+    if (isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'Student') {
+        header("location: student_dashboard.php");
     } else {
-        // Login failed
-        $error_message = "Invalid username or password. Please try again.";
+        header("location: home.php");
     }
+    exit();
 }
+
+// Redirect to login chooser
+header("location: login_chooser.php");
+exit();
+?>
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -241,6 +216,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
 
                 <div class="login-footer">
                     <a href="forgot_password.php">Forgot Password?</a>
+                    <br><br>
+                    <p style="font-size: 14px; color: #666;">Don't have an account? <a href="register.php" style="color: var(--classic-green); font-weight: bold;">Sign Up</a></p>
                 </div>
             </form>
         </div>

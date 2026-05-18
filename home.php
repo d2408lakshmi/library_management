@@ -259,7 +259,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     // Fetch AI Forecast
-    fetch('http://127.0.0.1:5000/api/forecast')
+    fetch('http://127.0.0.1:8000/api/forecast')
     .then(res => res.json())
     .then(data => {
         if(data.forecast && data.forecast.length > 0) {
@@ -290,7 +290,7 @@ document.addEventListener("DOMContentLoaded", function() {
     .catch(err => console.error("Forecast API failed.", err));
 
     // Fetch AI Recommendations (Mocking for user_id = 1)
-    fetch('http://127.0.0.1:5000/api/recommend?user_id=1')
+    fetch('http://127.0.0.1:8000/api/recommend?user_id=1')
     .then(res => res.json())
     .then(data => {
         const container = document.getElementById('recommendations-container');
