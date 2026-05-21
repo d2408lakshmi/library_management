@@ -1,6 +1,6 @@
 <?php
 // Your session.php file should already contain session_start()
-include('session.php');
+include('include/session.php');
 
 // Step 1: Unset all of the session variables.
 // This function takes NO arguments.

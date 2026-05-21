@@ -408,7 +408,7 @@
         });
     </script>
     <!-- /knob -->	
-	<?php include ('scripts.php'); ?>
+	<?php include ('include/scripts.php'); ?>
 
     <!-- AI Chatbot Widget -->
     <style>

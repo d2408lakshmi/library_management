@@ -8,7 +8,7 @@ include ('include/dbcon.php');
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-require_once('session.php'); // Your session validation script
+require_once('include/session.php'); // Your session validation script
 
 // Check if the session variables are set before using them
 if (!isset($_SESSION['book_title']) || !isset($_SESSION['book_pub'])) {

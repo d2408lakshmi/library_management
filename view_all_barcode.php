@@ -82,7 +82,7 @@ function printPage() {
 				
 			
 			<hr style="margin-top: 2px; color: A2A0A0;"/>
-			<?php echo "<img style='border:1px solid black; padding:15px;' src = 'BCG/html/image.php?filetype=PNG&dpi=72&scale=1&rotation=0&font_family=Arial.ttf&font_size=10&text=".$row['book_barcode']."&thickness=50&start=NULL&code=BCGcode128' />";
+			<?php echo "<img style='border:1px solid black; padding:15px;' src = 'generate_barcode.php?code=".urlencode($row['book_barcode'])."' />";
 			?>
 			</div>
 		

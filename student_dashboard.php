@@ -325,9 +325,9 @@ if ($stmt3) {
             <div class="col-md-3">
                 <div class="sidebar-nav">
                     <a href="student_dashboard.php"><i class="fa fa-home"></i> Dashboard</a>
-                    <a href="book_search.php"><i class="fa fa-search"></i> Search Books</a>
+                    <a href="student_book_search.php"><i class="fa fa-search"></i> Search Books</a>
                     <a href="student_profile.php"><i class="fa fa-user"></i> My Profile</a>
-                    <a href="penalty.php"><i class="fa fa-money"></i> My Fines</a>
+                    <a href="student_fines.php"><i class="fa fa-money"></i> My Fines</a>
                     <a href="logout.php" style="border-left-color: #dc3545; color: #dc3545;"><i class="fa fa-sign-out"></i> Logout</a>
                 </div>
             </div>

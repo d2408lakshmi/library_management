@@ -11,11 +11,11 @@
  
         <div class="row">
 		
-	<?php include ('allowed_qntty.php'); ?>
+	<?php include ('include/allowed_qntty.php'); ?>
 	
-	<?php include ('penalty.php'); ?>
+	<?php include ('include/penalty.php'); ?>
 	
-	<?php include ('allowed_days.php'); ?>
+	<?php include ('include/allowed_days.php'); ?>
 	
     <div class="clearfix"></div>
 		

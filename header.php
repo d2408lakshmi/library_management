@@ -1,5 +1,5 @@
 <?php require ('include/dbcon.php'); ?>
-<?php require ('session.php'); ?>
+<?php require ('include/session.php'); ?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -73,8 +73,8 @@
     <div class="container body">
         <div class="main_container">
 
-			<?php include ('sidebar_menu.php'); ?>
-				<?php include ('top_nav.php'); ?>
+			<?php include ('include/sidebar_menu.php'); ?>
+				<?php include ('include/top_nav.php'); ?>
 			<?php //include 'slidebar_with_nav.php' ?>	
 					<!-- page content -->
 					<div class="right_col" role="main" style="background-color: #bdeff3ff;">
