@@ -1,6 +1,7 @@
 <?php
-// Your session.php file should already contain session_start()
-include('include/session.php');
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Step 1: Unset all of the session variables.
 // This function takes NO arguments.
