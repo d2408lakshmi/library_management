@@ -133,6 +133,24 @@ $search_pub = $_POST['book_pub'] ?? '0';
         <div class="row">
             <div class="col-md-9">
                 <div class="search-card">
+                    
+                    <!-- AI Semantic Search Section -->
+                    <div style="background-color: #f7f9fa; border-left: 4px solid var(--student-blue); padding: 15px; border-radius: 4px; margin-bottom: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <h4 style="margin-top: 0; color: var(--student-blue); font-weight: bold;"><i class="fa fa-magic"></i> AI Smart Search (Semantic)</h4>
+                        <p style="font-size: 13px; color: #666; margin-bottom: 12px;">Type a topic, description, or question (e.g., "how to build SQL databases", "study guide for thermodynamics") and our AI engine will rank the most relevant books.</p>
+                        <div class="row">
+                            <div class="col-md-9 form-group">
+                                <input type="text" id="ai-search-query" class="form-control" placeholder="e.g. books for learning computer networking and routing">
+                            </div>
+                            <div class="col-md-3 form-group">
+                                <button type="button" id="btn-ai-search" class="btn btn-warning btn-block" style="font-weight: bold; background-color: #F39C12; border-color: #F39C12; color: white;"><i class="fa fa-paper-plane"></i> Search with AI</button>
+                            </div>
+                        </div>
+                        <div id="ai-search-loading" style="display: none; text-align: center; margin: 10px 0; color: #666;">
+                            <i class="fa fa-spinner fa-spin"></i> Analyzing query terms & ranking matching books...
+                        </div>
+                    </div>
+
                     <div class="search-title">Search Catalog</div>
                     
                     <form method="post" action="" class="row">
@@ -167,6 +185,7 @@ $search_pub = $_POST['book_pub'] ?? '0';
                         </div>
                     </form>
 
+                    <div id="default-search-results">
                     <?php
                     if (isset($_POST['search'])) {
                         $where_clauses = [];
@@ -200,6 +219,7 @@ $search_pub = $_POST['book_pub'] ?? '0';
                                             <th>Publisher</th>
                                             <th>Category</th>
                                             <th>Status</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -219,6 +239,9 @@ $search_pub = $_POST['book_pub'] ?? '0';
                                                     <?php } else { ?>
                                                         <span class="label label-warning"><?php echo htmlspecialchars($row['status']); ?></span>
                                                     <?php } ?>
+                                                </td>
+                                                <td>
+                                                    <a href="student_view_book.php?book_id=<?php echo $row['book_id']; ?>" class="btn btn-info btn-xs"><i class="fa fa-graduation-cap"></i> AI Study Guide</a>
                                                 </td>
                                             </tr>
                                             <?php
@@ -246,6 +269,7 @@ $search_pub = $_POST['book_pub'] ?? '0';
                                         <th>Publisher</th>
                                         <th>Category</th>
                                         <th>Status</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -266,6 +290,9 @@ $search_pub = $_POST['book_pub'] ?? '0';
                                                     <span class="label label-warning"><?php echo htmlspecialchars($row['status']); ?></span>
                                                 <?php } ?>
                                             </td>
+                                            <td>
+                                                <a href="student_view_book.php?book_id=<?php echo $row['book_id']; ?>" class="btn btn-info btn-xs"><i class="fa fa-graduation-cap"></i> AI Study Guide</a>
+                                            </td>
                                         </tr>
                                         <?php
                                     }
@@ -276,6 +303,34 @@ $search_pub = $_POST['book_pub'] ?? '0';
                         <?php
                     }
                     ?>
+                    </div>
+
+                    <!-- Dynamic AI Search Results Container -->
+                    <div id="ai-search-results" style="display: none; margin-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--student-blue); padding-bottom: 10px; margin-bottom: 20px;">
+                            <h4 style="color: var(--student-blue); font-weight: bold; margin: 0;"><i class="fa fa-robot"></i> AI Smart Search Results</h4>
+                            <button type="button" class="btn btn-default btn-xs" onclick="resetSearch()"><i class="fa fa-times"></i> Clear AI Results</button>
+                        </div>
+                        <div style="font-weight: bold; color: var(--student-blue); margin-bottom: 15px;" id="ai-results-count">Total books found: 0</div>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Barcode</th>
+                                        <th>Title</th>
+                                        <th>Author(s)</th>
+                                        <th>Publisher</th>
+                                        <th>Category</th>
+                                        <th>Status</th>
+                                        <th style="width:120px;">Relevance Match</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ai-search-results-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -292,6 +347,168 @@ $search_pub = $_POST['book_pub'] ?? '0';
         </div>
     </div>
 
+    <script>
+        document.getElementById('btn-ai-search').addEventListener('click', performAISearch);
+        document.getElementById('ai-search-query').addEventListener('keypress', function(e) {
+            if(e.key === 'Enter') performAISearch();
+        });
+
+        function performAISearch() {
+            var query = document.getElementById('ai-search-query').value.trim();
+            if(!query) {
+                alert('Please type a search query first!');
+                return;
+            }
+
+            var loader = document.getElementById('ai-search-loading');
+            var btn = document.getElementById('btn-ai-search');
+            var defaultResults = document.getElementById('default-search-results');
+            var aiResults = document.getElementById('ai-search-results');
+            var resultsBody = document.getElementById('ai-search-results-body');
+
+            loader.style.display = 'block';
+            btn.disabled = true;
+
+            fetch('http://127.0.0.1:5000/api/semantic-search?query=' + encodeURIComponent(query))
+            .then(res => res.json())
+            .then(data => {
+                resultsBody.innerHTML = '';
+                if(data.results && data.results.length > 0) {
+                    document.getElementById('ai-results-count').innerText = 'Total books found: ' + data.results.length;
+                    data.results.forEach(book => {
+                        var scorePct = Math.round(book.score * 100) + '%';
+                        var badgeClass = book.status === 'Available' ? 'label-success' : 'label-warning';
+                        var row = `
+                        <tr>
+                            <td><code>${book.barcode}</code></td>
+                            <td><strong>${book.title}</strong></td>
+                            <td>${book.author || 'Unknown Author'}</td>
+                            <td>${book.publisher || 'Unknown Publisher'}</td>
+                            <td>${book.category}</td>
+                            <td><span class="label ${badgeClass}">${book.status}</span></td>
+                            <td>
+                                <div class="progress" style="margin-bottom:0; height:18px;">
+                                    <div class="progress-bar progress-bar-warning" role="progressbar" style="width: ${scorePct}; font-size:10px; line-height:18px; font-weight:bold; color:white; background-color:#F39C12;">
+                                        ${scorePct}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <a href="student_view_book.php?book_id=${book.book_id}" class="btn btn-info btn-xs"><i class="fa fa-graduation-cap"></i> AI Study Guide</a>
+                            </td>
+                        </tr>`;
+                        resultsBody.innerHTML += row;
+                    });
+                    defaultResults.style.display = 'none';
+                    aiResults.style.display = 'block';
+                } else if(data.external_suggestions && data.external_suggestions.length > 0) {
+                    document.getElementById('ai-results-count').innerText = 'No matching books in local catalog. AI Suggested External Books:';
+                    var infoHtml = `
+                    <tr>
+                        <td colspan="8" style="background-color: #fffcf8; padding: 20px;">
+                            <div style="font-weight: bold; color: #E67E22; font-size: 15px; margin-bottom: 10px;">
+                                <i class="fa fa-info-circle"></i> We couldn't find matches in our local inventory.
+                            </div>
+                            <div style="font-size: 13px; color: #666; margin-bottom: 15px;">
+                                Based on your search, here are external books our AI recommends. You can request the librarian to purchase them:
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" style="background-color: white; margin-bottom: 0;">
+                                    <thead>
+                                        <tr style="background-color: #fcf8e3; color: #c09853;">
+                                            <th>Suggested Book Title</th>
+                                            <th>Author</th>
+                                            <th>Publisher</th>
+                                            <th>Category</th>
+                                            <th>AI Recommendation Reason</th>
+                                            <th style="width: 140px;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                    `;
+                    
+                    data.external_suggestions.forEach((item) => {
+                        infoHtml += `
+                        <tr>
+                            <td><strong>${item.title}</strong></td>
+                            <td>${item.author}</td>
+                            <td>${item.publisher}</td>
+                            <td><span class="label label-warning">${item.category}</span></td>
+                            <td><small>${item.reason}</small></td>
+                            <td>
+                                <button type="button" class="btn btn-warning btn-xs" onclick="requestPurchase(this, '${encodeURIComponent(item.title)}', '${encodeURIComponent(item.author)}', '${encodeURIComponent(item.publisher)}', '${encodeURIComponent(item.category)}')">
+                                    <i class="fa fa-send"></i> Request Purchase
+                                </button>
+                            </td>
+                        </tr>
+                        `;
+                    });
+                    
+                    infoHtml += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    `;
+                    resultsBody.innerHTML = infoHtml;
+                    defaultResults.style.display = 'none';
+                    aiResults.style.display = 'block';
+                } else {
+                    resultsBody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#777;">No relevant books found matching that topic. Try different words.</td></tr>';
+                    defaultResults.style.display = 'none';
+                    aiResults.style.display = 'block';
+                }
+            })
+            .catch(err => {
+                console.error("AI Search Failed:", err);
+                alert("Failed to connect to the AI Service. Make sure the backend is running.");
+            })
+            .finally(() => {
+                loader.style.display = 'none';
+                btn.disabled = false;
+            });
+        }
+
+        function requestPurchase(btn, title, author, publisher, category) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing...';
+            
+            var formData = new FormData();
+            formData.append('title', decodeURIComponent(title));
+            formData.append('author', decodeURIComponent(author));
+            formData.append('publisher', decodeURIComponent(publisher));
+            formData.append('category', decodeURIComponent(category));
+
+            fetch('add_requested_book.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    btn.innerHTML = '<i class="fa fa-check"></i> Requested & Added';
+                    btn.className = 'btn btn-success btn-xs';
+                    alert('Success: "' + decodeURIComponent(title) + '" has been generated and added to the library database!');
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa fa-send"></i> Request Purchase';
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa fa-send"></i> Request Purchase';
+                alert('Connection error occurred while processing book request.');
+            });
+        }
+
+        function resetSearch() {
+            document.getElementById('ai-search-query').value = '';
+            document.getElementById('default-search-results').style.display = 'block';
+            document.getElementById('ai-search-results').style.display = 'none';
+        }
+    </script>
     <script src="js/bootstrap.min.js"></script>
 </body>
 </html>

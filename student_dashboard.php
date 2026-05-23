@@ -238,6 +238,115 @@ if ($stmt3) {
             padding: 40px;
             color: #999;
         }
+
+        /* AI Recommendations Styling */
+        .recommendations-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .recommendation-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-top: 4px solid #F39C12;
+            text-align: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .recommendation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+
+        .recommendation-card h4 {
+            margin: 10px 0 5px 0;
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--dark-text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .recommendation-card p {
+            color: #777;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .recommendation-card .badge {
+            background-color: var(--student-blue);
+            color: white;
+            padding: 5px 10px;
+            font-size: 11px;
+            border-radius: 12px;
+        }
+
+        /* AI Chatbot Widget Styling */
+        #ai-chatbot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 9999;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ccc;
+            font-family: inherit;
+        }
+        #ai-chatbot-header {
+            background: var(--student-blue);
+            color: #fff;
+            padding: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #ai-chatbot-body {
+            height: 300px;
+            padding: 10px;
+            overflow-y: auto;
+            background: #f9f9f9;
+            display: none;
+            flex-direction: column;
+        }
+        #ai-chatbot-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        .ai-msg { background: #e1f5fe; padding: 5px 8px; border-radius: 5px; margin-bottom: 5px; width: fit-content; max-width: 90%; }
+        .user-msg { background: #c8e6c9; padding: 5px 8px; border-radius: 5px; margin-bottom: 5px; align-self: flex-end; width: fit-content; max-width: 90%; text-align: right; margin-left: auto;}
+        #ai-chatbot-input {
+            width: 100%;
+            display: flex;
+        }
+        #ai-chatbot-input input {
+            flex-grow: 1;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        #ai-chatbot-input button {
+            background: var(--student-blue);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 3px;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -319,6 +428,14 @@ if ($stmt3) {
                         <p>No borrowed books at the moment.</p>
                     </div>
                 <?php endif; ?>
+
+                <!-- Smart AI Recommendations Section -->
+                <div class="section-title"><i class="fa fa-star" style="color: #F39C12;"></i> Smart AI Recommendations</div>
+                <div class="recommendations-container" id="recommendations-container">
+                    <p style="grid-column: 1/-1; text-align: center; color: #777;">
+                        <i class="fa fa-spinner fa-spin"></i> Loading dynamic recommendations...
+                    </p>
+                </div>
             </div>
 
             <!-- Sidebar -->
@@ -334,6 +451,108 @@ if ($stmt3) {
         </div>
     </div>
 
+    <!-- AI Chatbot Widget -->
+    <div id="ai-chatbot">
+        <div id="ai-chatbot-header" onclick="toggleChat()">
+            <span><i class="fa fa-comments"></i> AI Library Assistant</span>
+            <i class="fa fa-chevron-up" id="chat-toggle-icon"></i>
+        </div>
+        <div id="ai-chatbot-body">
+            <div id="ai-chatbot-messages">
+                <div class="ai-msg">Hello! I am your AI Library Assistant. Ask me about our catalog!</div>
+            </div>
+            <div id="ai-chatbot-input">
+                <input type="text" id="chat-input" placeholder="e.g. Do you have Python books?" onkeypress="handleEnter(event)">
+                <button onclick="sendChatMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleChat() {
+            var body = document.getElementById('ai-chatbot-body');
+            var icon = document.getElementById('chat-toggle-icon');
+            if(body.style.display === 'flex') {
+                body.style.display = 'none';
+                icon.className = 'fa fa-chevron-up';
+            } else {
+                body.style.display = 'flex';
+                icon.className = 'fa fa-chevron-down';
+            }
+        }
+
+        function handleEnter(e) {
+            if(e.key === 'Enter') sendChatMessage();
+        }
+
+        function sendChatMessage() {
+            var input = document.getElementById('chat-input');
+            var msg = input.value.trim();
+            if(!msg) return;
+
+            // add user msg
+            var msgs = document.getElementById('ai-chatbot-messages');
+            msgs.innerHTML += '<div class="user-msg">' + msg + '</div>';
+            msgs.scrollTop = msgs.scrollHeight;
+            input.value = '';
+
+            // Loading state
+            var loadingId = 'loading-' + Date.now();
+            msgs.innerHTML += '<div class="ai-msg" id="' + loadingId + '"><i>Thinking...</i></div>';
+            msgs.scrollTop = msgs.scrollHeight;
+
+            fetch('http://127.0.0.1:5000/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById(loadingId).remove();
+                if(data.response) {
+                    msgs.innerHTML += '<div class="ai-msg">' + data.response + '</div>';
+                } else {
+                    msgs.innerHTML += '<div class="ai-msg" style="color:red">Error answering query.</div>';
+                }
+                msgs.scrollTop = msgs.scrollHeight;
+            })
+            .catch(e => {
+                document.getElementById(loadingId).remove();
+                msgs.innerHTML += '<div class="ai-msg" style="color:red">Connecting to AI Service Failed.</div>';
+                msgs.scrollTop = msgs.scrollHeight;
+            });
+        }
+
+        // Fetch AI Recommendations dynamically
+        document.addEventListener("DOMContentLoaded", function() {
+            var userId = <?php echo json_encode($user_id); ?>;
+            fetch('http://127.0.0.1:5000/api/recommend?user_id=' + userId)
+            .then(res => res.json())
+            .then(data => {
+                var container = document.getElementById('recommendations-container');
+                if(data.recommendations && data.recommendations.length > 0) {
+                    var html = '';
+                    data.recommendations.forEach(book => {
+                        html += `
+                        <div class="recommendation-card">
+                            <i class="fa fa-book fa-3x" style="color:#F39C12; margin-bottom:12px;"></i>
+                            <h4 title="${book.title}">${book.title}</h4>
+                            <p style="margin: 5px 0;">${book.author || 'Unknown Author'}</p>
+                            <span class="badge">${book.category}</span>
+                        </div>`;
+                    });
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #777;">No recommendations available yet.</p>';
+                }
+            })
+            .catch(err => {
+                console.error("Recommendations API failed:", err);
+                document.getElementById('recommendations-container').innerHTML = 
+                    '<p style="grid-column: 1/-1; text-align: center; color: red;">Failed to connect to AI Service. Ensure the Python API is running.</p>';
+            });
+        });
+    </script>
     <script src="js/bootstrap.min.js"></script>
 </body>
 </html>
